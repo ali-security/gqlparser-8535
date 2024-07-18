@@ -44,3 +44,31 @@ query SomeOperation {
 		assert.Equal(t, 5, query.Operations.ForName("SomeOperation").SelectionSet[0].GetPosition().Line)
 	})
 }
+
+func TestParseQueryWithTokenLimit(t *testing.T) {
+    t.Run("within token limit", func(t *testing.T) {
+        query, err := ParseQueryWithTokenLimit(&ast.Source{
+            Input: `
+            query SomeOperation {
+                myAction {
+                    id
+                }
+            }
+            `}, 100)
+        assert.Nil(t, err)
+        assert.NotNil(t, query)
+    })
+
+    t.Run("exceeding token limit", func(t *testing.T) {
+        _, err := ParseQueryWithTokenLimit(&ast.Source{
+            Input: `
+            query SomeOperation {
+                myAction {
+                    id
+                }
+            }
+            `}, 1)
+        assert.NotNil(t, err)
+        assert.Contains(t, err.Error(), "token limit exceeded")
+    })
+}
